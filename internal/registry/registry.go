@@ -33,7 +33,9 @@ type Channel struct {
 	Notes       string `toml:"notes,omitempty"`
 
 	// execution
-	Dir string `toml:"dir,omitempty"`
+	Dir  string `toml:"dir,omitempty"`
+	Tag  string `toml:"tag,omitempty"`
+	File string `toml:"file,omitempty"`
 }
 
 type Registry struct {

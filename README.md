@@ -25,7 +25,7 @@ Or download a release binary from GitHub Releases (built via goreleaser).
 dist status                 # channel/product inventory
 dist status --json          # machine-readable
 dist ship                   # dry-run by default
-dist ship --no-dry-run --yes  # execute (approval skipped with --yes)
+dist ship --dry-run=false --yes  # execute (approval skipped with --yes)
 dist ship --channel workflow-kit
 dist metrics                # JSON metrics
 dist doctor                 # tools/auth/registry health
@@ -88,6 +88,22 @@ Ship actions are appended to `~/.local/share/fhl/dist/events.jsonl` (JSONL).
 ## Secrets
 
 Use existing Bitwarden/.env. Never commit tokens. `dist doctor` checks auth.
+
+## GitHub auth strategy
+
+`gh` defaults to the personal account (`farishan`). For work repos under
+`farishubton`, either run `gh auth switch --user farishubton` first or set
+`GH_TOKEN`/`GITHUB_TOKEN` to a work token. The shared CLI does not store
+credentials; it relies on `gh`'s own auth state (P-015/P-016).
+
+## Real execution
+
+`dist ship` defaults to dry-run. To execute: `dist ship --dry-run=false --yes`.
+Per-channel requirements:
+- github: a tag (via `--tag` or an existing git tag in the repo dir).
+- cloudflare: `--dir` pointing at the build output (or set `dir` in registry).
+- gumroad: a specific `product_id` (not `all`) plus `--file` to attach.
+- npm: run from a package dir (`--dir`).
 
 ## License
 

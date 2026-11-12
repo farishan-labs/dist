@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/farishan-labs/dist/internal/registry"
@@ -25,6 +26,12 @@ type Result struct {
 }
 
 type Event = Result
+
+type Options struct {
+	Tag  string
+	Dir  string
+	File string
+}
 
 func toolExists(name string) bool {
 	_, err := exec.LookPath(name)
@@ -63,7 +70,6 @@ func planFor(c registry.Channel) (string, []string, string) {
 			repoDir = c.Dir
 		}
 		if toolExists("goreleaser") {
-			// check for goreleaser config
 			cfg := ""
 			if repoDir != "" {
 				for _, n := range []string{".goreleaser.yaml", ".goreleaser.yml", "goreleaser.yaml"} {
@@ -77,24 +83,39 @@ func planFor(c registry.Channel) (string, []string, string) {
 				return "goreleaser", []string{"release", "--clean"}, "goreleaser release"
 			}
 		}
-		return "gh", []string{"release", "create", "--generate-notes"}, "gh release create"
+		tag := c.Tag
+		if tag == "" && repoDir != "" {
+			// try git describe
+			out, err := exec.Command("git", "-C", repoDir, "describe", "--tags", "--abbrev=0").Output()
+			if err == nil {
+				tag = strings.TrimSpace(string(out))
+			}
+		}
+		if tag == "" {
+			return "", nil, "no tag; pass --tag or tag the repo"
+		}
+		return "gh", []string{"release", "create", tag, "--generate-notes"}, "gh release create " + tag
 	case registry.TypeCloudflare:
 		if toolExists("cf") {
+			args := []string{"deploy"}
 			if c.Project != "" {
-				return "cf", []string{"deploy", "--project-name", c.Project}, "cf deploy"
+				args = append(args, "--project-name", c.Project)
 			}
-			return "cf", []string{"deploy"}, "cf deploy"
+			if c.Dir != "" {
+				args = append(args, c.Dir)
+			}
+			return "cf", args, "cf deploy"
 		}
 		if toolExists("wrangler") {
 			return "wrangler", []string{"pages", "deploy"}, "wrangler pages deploy"
 		}
 		return "", nil, "no cloudflare tool found"
 	case registry.TypeGumroad:
+		if c.File != "" && c.ProductID != "" && c.ProductID != "all" {
+			return "gumroad", []string{"products", "update", c.ProductID, "--file", c.File}, "gumroad products update (attach file)"
+		}
 		return "gumroad", []string{"products", "list", "--json"}, "gumroad products list (verify auth)"
 	case registry.TypeNPM:
-		if c.Dir != "" {
-			return "npm", []string{"publish", "--dry-run"}, "npm publish --dry-run"
-		}
 		return "npm", []string{"publish"}, "npm publish"
 	case registry.TypeContent:
 		return "", nil, "manual: publish content to " + c.Platform
@@ -102,9 +123,18 @@ func planFor(c registry.Channel) (string, []string, string) {
 	return "", nil, "unknown channel type"
 }
 
-func Run(channels []registry.Channel, dryRun bool) []Result {
+func Run(channels []registry.Channel, dryRun bool, opts Options) []Result {
 	results := []Result{}
 	for _, c := range channels {
+		if opts.Tag != "" && c.Tag == "" {
+			c.Tag = opts.Tag
+		}
+		if opts.Dir != "" && c.Dir == "" {
+			c.Dir = opts.Dir
+		}
+		if opts.File != "" && c.File == "" {
+			c.File = opts.File
+		}
 		r := Result{Channel: c.Name, Type: c.Type, DryRun: dryRun, TS: time.Now().UTC()}
 		if c.Type == registry.TypeContent {
 			r.Skipped = true

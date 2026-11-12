@@ -16,6 +16,9 @@ var (
 	shipDryRun  bool
 	shipYes     bool
 	shipChannel []string
+	shipTag     string
+	shipDir     string
+	shipFile    string
 )
 
 var shipCmd = &cobra.Command{
@@ -65,7 +68,7 @@ var shipCmd = &cobra.Command{
 			}
 		}
 
-		results := ship.Run(channels, shipDryRun)
+		results := ship.Run(channels, shipDryRun, ship.Options{Tag: shipTag, Dir: shipDir, File: shipFile})
 		for _, r := range results {
 			status := "OK"
 			if r.Err != nil {
@@ -87,4 +90,7 @@ func init() {
 	shipCmd.Flags().BoolVar(&shipDryRun, "dry-run", true, "print planned actions without executing")
 	shipCmd.Flags().BoolVar(&shipYes, "yes", false, "skip approval prompt")
 	shipCmd.Flags().StringSliceVar(&shipChannel, "channel", nil, "limit to named channel(s)")
+	shipCmd.Flags().StringVar(&shipTag, "tag", "", "release tag (github)")
+	shipCmd.Flags().StringVar(&shipDir, "dir", "", "build/output dir override")
+	shipCmd.Flags().StringVar(&shipFile, "file", "", "file to attach (gumroad)")
 }
