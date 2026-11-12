@@ -4,21 +4,16 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
+
+	"github.com/farishan-labs/dist/internal/metrics"
 )
 
 var metricsCmd = &cobra.Command{
 	Use:   "metrics",
 	Short: "Print distribution metrics as JSON",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// v0: stub metrics. Real implementation pulls Gumroad analytics + GoatCounter.
-		m := map[string]any{
-			"status":   "stub",
-			"views":    0,
-			"sales":    0,
-			"revenue":  0,
-			"note":     "Implement Gumroad get_analytics + GoatCounter API in v0.2",
-		}
-		b, err := json.MarshalIndent(m, "", "  ")
+		rep := metrics.Collect()
+		b, err := json.MarshalIndent(rep, "", "  ")
 		if err != nil {
 			return err
 		}

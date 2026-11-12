@@ -1,6 +1,21 @@
 # PLAN — dist v0
 
 ## Milestone 0 — Scaffold (done)
+## Milestone 1 — Registry + status (done)
+- Channel-registry TOML schema v1 (global + per-repo via LoadRepo/Save).
+- `dist status` with --json, validation, enabled filter.
+- Tests: registry parse, validation, save/load, enabled, find, loadrepo.
+## Milestone 2 — Ship orchestration (done)
+- `dist ship` with --dry-run (default), --yes, --channel.
+- Approval gate on real runs; subprocess delegation (gh/goreleaser/cf/gumroad/npm).
+- JSONL event log at ~/.local/share/fhl/dist/events.jsonl.
+## Milestone 3 — Metrics (done)
+- `dist metrics --json`: Gumroad products/sales/revenue via gumroad CLI; optional GoatCounter; best-effort MCP views.
+- Growth-dashboard integration documented in README.
+## Milestone 4 — Polish (done)
+- `dist doctor`: tools/auth/registry health.
+- goreleaser config (.goreleaser.yaml), README, install docs.
+- Tag v0.1.0 pending.
 - Go module, cobra CLI skeleton, SPEC/PLAN, README, LICENSE (GPL-3.0).
 
 ## Milestone 1 — Registry + status (week 1)

@@ -6,10 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var version = "dev"
+
 var rootCmd = &cobra.Command{
-	Use:   "dist",
-	Short: "FHL distribution layer: ship and measure across channels",
-	Long:  "dist is the single command surface for shipping and measuring across FHL distribution channels.",
+	Use:     "dist",
+	Short:   "FHL distribution layer: ship and measure across channels",
+	Long:    "dist is the single command surface for shipping and measuring across FHL distribution channels.",
+	Version: version,
 }
 
 func Execute() error {
