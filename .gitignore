@@ -1,0 +1,13 @@
+# Binaries
+dist
+*.exe
+*.test
+*.out
+
+# Go
+vendor/
+go.sum.bak
+
+# OS
+.DS_Store
+EOF
