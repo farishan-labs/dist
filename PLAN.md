@@ -40,3 +40,10 @@
 ## Verification
 - `go build ./...`, `go test ./...`, `go vet ./...`.
 - Manual dry-run ship on one repo.
+
+## Milestone 5 — Content channel (planned)
+- dev.to article: "dist: one command surface for shipping and measuring across channels" (install, status, ship dry-run, metrics).
+- Product Hunt launch: tagline, gallery, demo GIF, install one-liner.
+- essays.farishan.com deep-dive: registry schema + event log + metrics loop.
+- npm/design-tokens cross-link and Cloudflare Pages demo site.
+- Checklist: README quickstart, `dist --version`, `dist doctor` green, sample `dist metrics --json`, release notes for v0.3.0.

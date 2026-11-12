@@ -18,11 +18,12 @@ P-009 one tool one job (money path), P-010 human sets direction (dry-run default
 5. Secrets via existing Bitwarden/.env (P-015/P-016); no account creation (P-019).
 
 ## Deferred (v1+)
-npm/Homebrew publish, content (dev.to/PH), audience/ESP capture, UTM attribution join, Tauri UI.
+npm/Homebrew publish, content (dev.to/PH), audience capture, Tauri UI.
+ESP selection supported via `esp` channel type; UTM attribution join included in `dist metrics`.
 
 ## Channel registry
 Single source of truth: `~/.config/fhl/distribution.toml` (global) and/or per-repo
-`.fhl-dist.toml`. Schema TBD (see research gaps).
+`.fhl-dist.toml`. Schema v1 defined in `internal/registry` (global + per-repo).
 
 ## Non-goals
 No marketing automation, no auto-publishing, no reinvention of gh/goreleaser/cf/npm/Gumroad.

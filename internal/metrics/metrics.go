@@ -30,20 +30,28 @@ type Report struct {
 	Notes       []string       `json:"notes,omitempty"`
 }
 
+type UTMEntry struct {
+	Source          string  `json:"source"`
+	Count           int     `json:"count"`
+	RevenueUSDCents float64 `json:"revenue_usd_cents"`
+}
+
 type GumroadMetrics struct {
-	ProductsTotal     int     `json:"products_total"`
-	ProductsPublished int     `json:"products_published"`
-	ProductsDraft     int     `json:"products_draft"`
-	SalesCount        int     `json:"sales_count"`
-	RevenueUSDCents   float64 `json:"revenue_usd_cents"`
-	RevenueUSD        float64 `json:"revenue_usd"`
-	Views             int     `json:"views,omitempty"`
-	ViewsSource       string  `json:"views_source,omitempty"`
-	SalesListCount    int     `json:"sales_list_count"`
+	ProductsTotal     int        `json:"products_total"`
+	ProductsPublished int        `json:"products_published"`
+	ProductsDraft     int        `json:"products_draft"`
+	SalesCount        int        `json:"sales_count"`
+	RevenueUSDCents   float64    `json:"revenue_usd_cents"`
+	RevenueUSD        float64    `json:"revenue_usd"`
+	Views             int        `json:"views,omitempty"`
+	ViewsSource       string     `json:"views_source,omitempty"`
+	SalesListCount    int        `json:"sales_list_count"`
+	UTMAttribution    []UTMEntry `json:"utm_attribution,omitempty"`
 }
 
 type GoatMetrics struct {
 	Configured bool   `json:"configured"`
+	Verified   bool   `json:"verified"`
 	BaseURL    string `json:"base_url,omitempty"`
 	Views      int    `json:"views"`
 	Visitors   int    `json:"visitors"`
@@ -99,22 +107,44 @@ func Collect() Report {
 	}
 
 	salesOut, err := runGumroad("sales", "list", "--all")
+	utm := map[string]*UTMEntry{}
 	if err != nil {
 		notes = append(notes, "gumroad sales list failed: "+err.Error())
 	} else {
+		addSale := func(m map[string]any) {
+			src := utmSource(m)
+			e := utm[src]
+			if e == nil {
+				e = &UTMEntry{Source: src}
+				utm[src] = e
+			}
+			e.Count++
+			e.RevenueUSDCents += saleRevenueCents(m)
+		}
 		var arr []map[string]any
 		if err := json.Unmarshal(salesOut, &arr); err == nil {
 			gm.SalesListCount = len(arr)
+			for _, m := range arr {
+				addSale(m)
+			}
 		} else {
 			var obj map[string]any
 			if err := json.Unmarshal(salesOut, &obj); err == nil {
 				if sl, ok := obj["sales"].([]any); ok {
 					gm.SalesListCount = len(sl)
+					for _, item := range sl {
+						if m, ok := item.(map[string]any); ok {
+							addSale(m)
+						}
+					}
 				}
 			} else {
 				notes = append(notes, "gumroad sales parse failed: "+err.Error())
 			}
 		}
+	}
+	for _, e := range utm {
+		gm.UTMAttribution = append(gm.UTMAttribution, *e)
 	}
 
 	token := os.Getenv("GUMROAD_ACCESS_TOKEN")
@@ -147,6 +177,7 @@ func Collect() Report {
 			gc.Error = err.Error()
 			notes = append(notes, "goatcounter fetch failed: "+err.Error())
 		} else {
+			gc.Verified = true
 			gc.Views = v
 			gc.Visitors = vis
 		}
@@ -220,6 +251,16 @@ func fetchViewsMCP(url, token string) (int, string, error) {
 	return views, "mcp:get_analytics", nil
 }
 
+func VerifyGoatCounter() error {
+	base := os.Getenv("GOATCOUNTER_URL")
+	token := os.Getenv("GOATCOUNTER_TOKEN")
+	if base == "" {
+		return fmt.Errorf("GOATCOUNTER_URL not set")
+	}
+	_, _, err := fetchGoatCounter(base, token)
+	return err
+}
+
 func fetchGoatCounter(base, token string) (int, int, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	url := strings.TrimRight(base, "/") + "/api/v0/stats/total"
@@ -254,6 +295,48 @@ func fetchGoatCounter(base, token string) (int, int, error) {
 		visitors = toInt(v)
 	}
 	return views, visitors, nil
+}
+
+func utmSource(m map[string]any) string {
+	for _, key := range []string{"utm_source", "utmSource", "source", "referrer"} {
+		if v, ok := m[key]; ok {
+			if str := toString(v); str != "" {
+				return str
+			}
+		}
+	}
+	return "direct"
+}
+
+func saleRevenueCents(m map[string]any) float64 {
+	for _, key := range []string{"price_cents", "amount_cents", "price"} {
+		if v, ok := m[key]; ok {
+			switch t := v.(type) {
+			case float64:
+				return t
+			case int:
+				return float64(t)
+			case json.Number:
+				f, _ := t.Float64()
+				return f
+			case string:
+				var n float64
+				fmt.Sscanf(t, "%f", &n)
+				return n
+			}
+		}
+	}
+	return 0
+}
+
+func toString(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	case float64:
+		return fmt.Sprintf("%.0f", t)
+	}
+	return ""
 }
 
 func toInt(v any) int {

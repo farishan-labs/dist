@@ -17,6 +17,7 @@ const (
 	TypeCloudflare = "cloudflare"
 	TypeNPM        = "npm"
 	TypeContent    = "content"
+	TypeESP        = "esp"
 )
 
 type Channel struct {
@@ -29,6 +30,7 @@ type Channel struct {
 	Project     string `toml:"project,omitempty"`
 	Package     string `toml:"package,omitempty"`
 	Platform    string `toml:"platform,omitempty"`
+	ESP         string `toml:"esp,omitempty"`
 	LastShipped string `toml:"last_shipped,omitempty"`
 	Notes       string `toml:"notes,omitempty"`
 
@@ -44,7 +46,7 @@ type Registry struct {
 }
 
 var validTypes = map[string]bool{
-	TypeGitHub: true, TypeGumroad: true, TypeCloudflare: true, TypeNPM: true, TypeContent: true,
+	TypeGitHub: true, TypeGumroad: true, TypeCloudflare: true, TypeNPM: true, TypeContent: true, TypeESP: true,
 }
 
 func (r Registry) Validate() error {
@@ -79,6 +81,10 @@ func (r Registry) Validate() error {
 		case TypeContent:
 			if c.Platform == "" {
 				return fmt.Errorf("channel %q: platform required for content", c.Name)
+			}
+		case TypeESP:
+			if c.ESP == "" {
+				return fmt.Errorf("channel %q: esp required for esp", c.Name)
 			}
 		}
 	}

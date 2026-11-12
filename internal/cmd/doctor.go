@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/farishan-labs/dist/internal/metrics"
 	"github.com/farishan-labs/dist/internal/registry"
 )
 
@@ -78,6 +79,14 @@ var doctorCmd = &cobra.Command{
 			fmt.Println("[WARN] env:GUMROAD_ACCESS_TOKEN: not set (optional; needed for views)")
 		} else {
 			fmt.Println("[OK]   env:GUMROAD_ACCESS_TOKEN")
+		}
+
+		if os.Getenv("GOATCOUNTER_URL") != "" {
+			check("goatcounter-api", func() error {
+				return metrics.VerifyGoatCounter()
+			})
+		} else {
+			fmt.Println("[WARN] env:GOATCOUNTER_URL: not set (optional; needed for traffic)")
 		}
 
 		if !ok {

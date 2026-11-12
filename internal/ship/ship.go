@@ -119,6 +119,8 @@ func planFor(c registry.Channel) (string, []string, string) {
 		return "npm", []string{"publish"}, "npm publish"
 	case registry.TypeContent:
 		return "", nil, "manual: publish content to " + c.Platform
+	case registry.TypeESP:
+		return "", nil, "manual: configure ESP " + c.ESP
 	}
 	return "", nil, "unknown channel type"
 }
@@ -139,6 +141,12 @@ func Run(channels []registry.Channel, dryRun bool, opts Options) []Result {
 		if c.Type == registry.TypeContent {
 			r.Skipped = true
 			r.Summary = "manual step: publish to " + c.Platform
+			results = append(results, r)
+			continue
+		}
+		if c.Type == registry.TypeESP {
+			r.Skipped = true
+			r.Summary = "manual step: configure ESP " + c.ESP
 			results = append(results, r)
 			continue
 		}

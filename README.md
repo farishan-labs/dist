@@ -72,7 +72,7 @@ package (`LoadRepo`).
 ## Metrics
 
 `dist metrics` emits JSON: Gumroad product/sales/revenue counts (via gumroad CLI)
-plus optional GoatCounter traffic (set `GOATCOUNTER_URL`, `GOATCOUNTER_TOKEN`).
+plus optional GoatCounter traffic (set `GOATCOUNTER_URL`, `GOATCOUNTER_TOKEN`) with API verification; UTM attribution is joined from Gumroad sales.
 Views via Gumroad MCP are best-effort (endpoint may require a fresh token).
 
 ## Growth-dashboard integration
@@ -108,3 +108,12 @@ Per-channel requirements:
 ## License
 
 GPL-3.0 (community) per P-006/P-023. See `LICENSE`.
+
+## Sources
+
+- GoatCounter API: https://www.goatcounter.com/help/api
+- Gumroad API: https://gumroad.com/api
+- goreleaser: https://goreleaser.com
+- Cloudflare Pages / Wrangler: https://developers.cloudflare.com/pages
+- Cloudflare `cf` CLI: https://developers.cloudflare.com/workers/wrangler
+- Cobra CLI: https://github.com/spf13/cobra
