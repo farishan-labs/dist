@@ -25,8 +25,8 @@ var doctorCmd = &cobra.Command{
 			}
 		}
 
-		required := []string{"gh", "gumroad", "cf"}
-		optional := []string{"goreleaser", "wrangler", "npm"}
+		required := []string{"gh", "gumroad"}
+		optional := []string{"cf", "goreleaser", "wrangler", "npm"}
 		for _, t := range required {
 			tt := t
 			check("tool:"+tt, func() error {
