@@ -27,10 +27,18 @@ dist status --json          # machine-readable
 dist ship                   # dry-run by default
 dist ship --dry-run=false --yes  # execute (approval skipped with --yes)
 dist ship --channel workflow-kit
-dist metrics                # JSON metrics
+dist metrics                # JSON metrics (via plugins)
+dist plugin list            # list metric plugins
+dist plugin run <name>      # run one plugin
 dist doctor                 # tools/auth/registry health
 dist --version
 ```
+
+## Plugins
+
+Metrics are collected by external plugins registered in `~/.config/fhl/dist-plugins.toml`.
+Default plugins: `gumroad`, `goatcounter` (provided by `dist-plugin` binary).
+Add your own: `dist plugin add <name> <binary> [args...]`.
 
 ## Registry
 
